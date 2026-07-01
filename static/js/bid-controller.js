@@ -102,10 +102,10 @@ class BidController {
 
         // 轮转到下一位叫分
         const nextPlayer = result.nextPlayer ?? result.next_player;
-        if (nextPlayer !== undefined && nextPlayer !== null) {
+            if (nextPlayer !== undefined && nextPlayer !== null) {
             if (nextPlayer === 0) {
-                // 轮到我叫分
                 this.showBidOptions(result.bidScore ?? result.bid_score ?? 0);
+                if (this.onNeedCountdown) this.onNeedCountdown(30);
             } else {
                 // AI叫分
                 await this.handleAiBid(nextPlayer);
@@ -157,7 +157,7 @@ class BidController {
             const result = await this.api.aiBid(playerId);
             if (result.success) {
                 const data = result.data?.data || result.data;
-                const score = data?.score ?? 0;
+                const score = data?.aiDecision ?? data?.bidScore ?? 0;
                 if (score > 0) {
                     this.ui.updateStatusText(`${Utils.getPlayerName(playerId)} 叫了 ${score} 分`);
                     this.sound.play('bid');

@@ -285,7 +285,7 @@ class CardRenderer {
 
         cards.forEach((card, index) => {
             const cardEl = this.render(
-                { ...card, face_up: revealed },
+                { ...card, faceUp: revealed },
                 { selected: false, small: true, clickable: false }
             );
 

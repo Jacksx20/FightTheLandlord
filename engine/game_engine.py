@@ -63,7 +63,7 @@ class GameEngine:
 
         return {
             'gameId': game_id,
-            'players': [p.to_dict() for p in players],
+            'players': [p.to_dict(hide_cards=p.is_ai) for p in players],
             'hiddenCards': None,  # 叫地主前不公开
             'phase': game_state.phase,
             'currentPlayer': game_state.current_player,
@@ -191,7 +191,7 @@ class GameEngine:
             'nextPlayer': game_state.current_player,
             'phase': 'bidding',
             'message': '无人叫地主，重新发牌',
-            'players': [p.to_dict() for p in game_state.players],
+            'players': [p.to_dict(hide_cards=p.is_ai) for p in game_state.players],
         }
 
     def _settle_landlord(self, game_state: GameState, landlord_id: int) -> None:
@@ -271,8 +271,11 @@ class GameEngine:
             'multiplier': game_state.multiplier,
             'nextPlayer': game_state.current_player,
             'phase': game_state.phase,
-            'handCards': [c.to_dict() for c in player.hand_cards],
+            'handCards': [c.to_dict() for c in player.hand_cards] if not player.is_ai else None,
             'handCardCount': player.hand_card_count,
+            'isFreePlay': False,
+            'lastPlay': [c.to_dict() for c in cards],
+            'lastPlayBy': player_id,
         }
         if winner is not None:
             result['winnerId'] = winner
@@ -334,6 +337,8 @@ class GameEngine:
             'nextPlayer': game_state.current_player,
             'isFreePlay': is_free_play,
             'phase': game_state.phase,
+            'lastPlay': [c.to_dict() for c in game_state.last_play] if game_state.last_play else None,
+            'lastPlayBy': game_state.last_play_by,
         }
 
     def settle(self, game_id: str) -> Dict[str, Any]:

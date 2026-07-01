@@ -1,12 +1,12 @@
 {
-  "totalGames": 5,
+  "totalGames": 6,
   "totalWins": 3,
   "landlordGames": 1,
   "landlordWins": 0,
-  "farmerGames": 4,
+  "farmerGames": 5,
   "farmerWins": 3,
-  "totalScore": 2100,
-  "winRate": 0.6,
+  "totalScore": 2400,
+  "winRate": 0.5,
   "landlordWinRate": 0.0,
-  "farmerWinRate": 0.75
+  "farmerWinRate": 0.6
 }

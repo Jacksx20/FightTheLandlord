@@ -303,3 +303,30 @@ MIT License
 
 ---
 
+## 🔧 修复记录
+
+### 第一轮修复：手牌与出牌显示
+
+| 问题 | 原因 | 修复 |
+|------|------|------|
+| 看不见自己的手牌 | 后端 `Card.to_dict()` 输出 `faceUp`（驼峰），前端 `card-renderer.js` 检查 `card.face_up`（下划线），`!undefined` 为 `true`，所有牌渲染为背面 | `card-renderer.js:52` 改为 `card.faceUp === false` |
+| 看不见别人出的牌 | AI出牌API返回 `aiAction`，前端检查 `data.action`；且响应中未包含出的牌 | `ai_routes.py` 将 `aiAction` 改为 `action`，并添加 `result['cards']` 序列化AI出的牌 |
+| 左右AI出牌区牌面显示不全 | AI面板宽仅 `w-48`(192px)，多张牌溢出被裁剪 | AI出牌区添加 `overflow:visible`，出牌容器添加 `flex-wrap` |
+
+### 第二轮修复：全面优化
+
+| # | 问题 | 原因 | 修复 | 涉及文件 |
+|---|------|------|------|----------|
+| 1 | 底牌翻牌动画无效 | `renderHiddenCards` 传入 `face_up`，`render()` 读取 `faceUp` | `face_up` → `faceUp` | `card-renderer.js:288` |
+| 2 | 6种牌型显示英文key | 前端 `getPatternName` 的key与后端 `pattern.py` 常量不一致（如 `triple_one` vs `triple_with_single`） | 添加后端实际使用的key映射 | `utils.js:152-168` |
+| 3 | AI叫分UI永远显示"不叫" | 前端读取 `data.score`，后端返回 `aiDecision` | `data.score` → `data.aiDecision` | `bid-controller.js:160` |
+| 4 | 人类玩家信息覆盖AI右 | `renderPlayerInfo` 中 `id===1?'left':'right'` 将 id=0 映射到 right | 循环中跳过 `id===0` | `ui-updater.js:68-89` |
+| 5 | 出牌后状态更新死代码 | `me.handCards = newHand` 后 `me.handCards \|\| (me.hand_cards=...)` 永远短路 | 移除死代码 | `play-controller.js:127` |
+| 6 | AI手牌泄露到前端 | `new_game`/`_handle_all_pass_bid`/`play` 中 `to_dict()` 未隐藏AI手牌 | `to_dict(hide_cards=p.is_ai)` | `game_engine.py:66,194,274` |
+| 7 | "不出"按钮显示时机错误 | 出牌/过牌后 `setState` 未更新 `isFreePlay`/`lastPlay`/`lastPlayBy` | 补充状态字段；后端 `play`/`pass_turn` 返回 `isFreePlay`/`lastPlay`/`lastPlayBy` | `play-controller.js`, `game_engine.py` |
+| 8 | 再次叫分时倒计时不重启 | `bid-controller` 再次轮到人类叫分时未通知 `game-controller` 重启倒计时 | 暴露 `onNeedCountdown` 回调，`game-controller` 绑定 | `bid-controller.js:108`, `game-controller.js:50` |
+| 9 | 发牌动画定位失败 | 引用 `getElementById('player-hand')`，HTML中ID为 `hand-cards` | 修正元素ID | `animation-engine.js:45` |
+| 10 | 自由出牌权时出牌区未清空 | 两人过牌后新轮次开始，旧出牌/过牌状态残留 | 检测 `isFreePlay` 时调用 `clearPlayAreas()` | `play-controller.js` |
+
+---
+

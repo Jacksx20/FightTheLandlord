@@ -47,6 +47,9 @@ class GameController {
         this.bidCtrl.onAllPass = (result) => {
             this._onAllPass(result);
         };
+        this.bidCtrl.onNeedCountdown = (seconds) => {
+            this.startCountdown(seconds);
+        };
 
         // 出牌控制器回调
         this.playCtrl.onNextTurn = (data) => {

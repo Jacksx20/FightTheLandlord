@@ -67,25 +67,24 @@ class UIUpdater {
 
         players.forEach(player => {
             const id = player.id;
+            if (id === 0) return;
+
             const role = player.role;
             const handCount = player.handCardCount ?? player.hand_card_count ?? (player.handCards || player.hand_cards || []).length;
 
-            // 角色标识
-            const roleEl = Utils.$(`ai-${id === 1 ? 'left' : 'right'}-role`);
+            const side = id === 1 ? 'left' : 'right';
+
+            const roleEl = Utils.$(`ai-${side}-role`);
             if (roleEl) {
                 roleEl.textContent = Utils.getRoleIcon(role) + ' ' + Utils.getRoleName(role);
             }
 
-            // 剩余牌数
-            const countEl = Utils.$(`ai-${id === 1 ? 'left' : 'right'}-count`);
+            const countEl = Utils.$(`ai-${side}-count`);
             if (countEl) {
                 countEl.textContent = `🃏 ×${handCount}`;
             }
 
-            // AI手牌背面
-            if (id !== 0) {
-                this.cardRenderer.renderBack(handCount, `ai-${id === 1 ? 'left' : 'right'}-cards`);
-            }
+            this.cardRenderer.renderBack(handCount, `ai-${side}-cards`);
         });
     }
 

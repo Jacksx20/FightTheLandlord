@@ -124,7 +124,7 @@ class PlayController {
                 const me = stateData.players.find(p => p.id === 0);
                 if (me) {
                     me.handCards = newHand;
-                    me.handCards || (me.hand_cards = newHand);
+
                 }
             }
         }
@@ -133,8 +133,16 @@ class PlayController {
         this.state.setState({
             currentPlayer: data.nextPlayer ?? data.next_player,
             phase: data.phase,
-            multiplier: data.multiplier
+            multiplier: data.multiplier,
+            isFreePlay: data.isFreePlay ?? data.is_free_play,
+            lastPlay: data.lastPlay ?? data.last_play,
+            lastPlayBy: data.lastPlayBy ?? data.last_play_by
         });
+
+        if (data.isFreePlay ?? data.is_free_play) {
+            this.ui.clearPlayAreas();
+            this.ui.renderPlayArea(0, cards);
+        }
 
         // 检测游戏结束
         if (data.winnerId !== undefined && data.winnerId !== null) {
@@ -168,7 +176,10 @@ class PlayController {
             // 更新状态
             this.state.setState({
                 currentPlayer: data.nextPlayer ?? data.next_player,
-                phase: data.phase
+                phase: data.phase,
+                isFreePlay: data.isFreePlay ?? data.is_free_play,
+                lastPlay: data.lastPlay ?? data.last_play,
+                lastPlayBy: data.lastPlayBy ?? data.last_play_by
             });
 
             this.ui.updateStatusText('你选择不出');
@@ -272,10 +283,15 @@ class PlayController {
             this.state.setState({
                 currentPlayer: data.nextPlayer ?? data.next_player,
                 phase: data.phase,
-                multiplier: data.multiplier
+                multiplier: data.multiplier,
+                isFreePlay: data.isFreePlay ?? data.is_free_play,
+                lastPlay: data.lastPlay ?? data.last_play,
+                lastPlayBy: data.lastPlayBy ?? data.last_play_by
             });
 
-            // 更新玩家信息
+            if (data.isFreePlay ?? data.is_free_play) {
+                this.ui.clearPlayAreas();
+            }
             const stateResult = await this.api.getGameState();
             if (stateResult.success) {
                 const stateData = stateResult.data?.data || stateResult.data;

@@ -42,7 +42,7 @@ class AnimationEngine {
      */
     dealAnimation(callback) {
         const dealPile = document.getElementById('deal-pile');
-        const playerHand = document.getElementById('player-hand');
+        const playerHand = document.getElementById('hand-cards');
         const aiLeftCards = document.getElementById('ai-left-cards');
         const aiRightCards = document.getElementById('ai-right-cards');
 
