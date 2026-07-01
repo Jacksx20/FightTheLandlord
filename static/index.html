@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>斗地主 - Fight the Landlord</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+SC:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans SC', 'sans-serif'],
+                    },
+                    backdropBlur: {
+                        xs: '2px',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- 自定义样式 -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="game-table overflow-hidden select-none">
+
+    <!-- ========== 屏幕闪烁效果层 ========== -->
+    <div id="screen-flash" class="screen-flash"></div>
+
+    <!-- ========== 顶部栏 ========== -->
+    <div id="top-bar" class="flex items-center justify-between px-4 py-2 relative z-10">
+        <!-- 底牌区 -->
+        <div id="hidden-cards-container" class="glass-panel px-4 py-2 flex items-center gap-2 min-w-[160px]">
+            <span class="text-xs text-slate-400 mr-1">底牌</span>
+            <div id="hidden-cards" class="flex gap-1"></div>
+        </div>
+
+        <!-- 游戏状态提示 -->
+        <div id="game-status" class="glass-panel px-6 py-2 text-center">
+            <h1 class="text-lg font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+                🃏 斗地主
+            </h1>
+            <p id="status-text" class="text-xs text-slate-400 mt-0.5">点击开始游戏</p>
+        </div>
+
+        <!-- 功能按钮 -->
+        <div class="flex items-center gap-2">
+            <button id="btn-stats" class="glass-panel px-3 py-2 text-sm hover:bg-white/20 transition-colors" title="战绩">
+                📊 战绩
+            </button>
+            <button id="btn-settings" class="glass-panel px-3 py-2 text-sm hover:bg-white/20 transition-colors" title="设置">
+                ⚙️ 设置
+            </button>
+        </div>
+    </div>
+
+    <!-- ========== 游戏主区域 ========== -->
+    <div id="game-area" class="flex-1 flex items-stretch px-4 relative" style="height: calc(100vh - 200px);">
+
+        <!-- AI左玩家面板 -->
+        <div id="ai-left-panel" class="w-48 flex flex-col items-center gap-2 py-4">
+            <div class="glass-panel w-full p-3 text-center">
+                <div class="text-2xl mb-1">🤖</div>
+                <div class="text-sm font-bold text-slate-200">AI·左</div>
+                <div id="ai-left-role" class="text-xs text-amber-400 mt-0.5"></div>
+                <div id="ai-left-count" class="text-xs text-slate-400 mt-1">🃏 ×17</div>
+            </div>
+            <div id="ai-left-cards" class="mt-2"></div>
+            <div id="ai-left-play" class="glass-panel w-full min-h-[80px] flex items-center justify-center mt-2 p-2">
+                <span class="play-area-placeholder text-xs text-slate-500">等待出牌...</span>
+            </div>
+        </div>
+
+        <!-- 中央出牌区 -->
+        <div id="center-area" class="flex-1 flex flex-col items-center justify-center gap-4">
+            <!-- 发牌堆（动画用） -->
+            <div id="deal-pile" class="relative" style="display:none;"></div>
+
+            <!-- 牌型提示 -->
+            <div id="pattern-hint" class="h-8"></div>
+
+            <!-- 玩家出牌展示区 -->
+            <div id="player-play" class="glass-panel w-full max-w-md min-h-[100px] flex items-center justify-center p-3">
+                <span class="play-area-placeholder text-xs text-slate-500">等待出牌...</span>
+            </div>
+        </div>
+
+        <!-- AI右玩家面板 -->
+        <div id="ai-right-panel" class="w-48 flex flex-col items-center gap-2 py-4">
+            <div class="glass-panel w-full p-3 text-center">
+                <div class="text-2xl mb-1">🤖</div>
+                <div class="text-sm font-bold text-slate-200">AI·右</div>
+                <div id="ai-right-role" class="text-xs text-amber-400 mt-0.5"></div>
+                <div id="ai-right-count" class="text-xs text-slate-400 mt-1">🃏 ×17</div>
+            </div>
+            <div id="ai-right-cards" class="mt-2"></div>
+            <div id="ai-right-play" class="glass-panel w-full min-h-[80px] flex items-center justify-center mt-2 p-2">
+                <span class="play-area-placeholder text-xs text-slate-500">等待出牌...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== 玩家手牌区 ========== -->
+    <div id="hand-area" class="glass-panel mx-4 mb-2 px-4 py-3 min-h-[130px] flex items-end justify-center">
+        <div id="hand-cards" class="hand-cards flex items-end justify-center"></div>
+    </div>
+
+    <!-- ========== 操作栏 ========== -->
+    <div id="action-bar" class="flex items-center justify-center gap-4 px-4 py-3">
+        <!-- 叫地主按钮组（默认隐藏） -->
+        <div id="bid-panel" class="flex items-center gap-3" style="display:none;">
+            <button id="btn-bid-1" class="btn-primary px-5 py-2 text-sm font-bold">1分</button>
+            <button id="btn-bid-2" class="btn-primary px-5 py-2 text-sm font-bold">2分</button>
+            <button id="btn-bid-3" class="btn-primary px-5 py-2 text-sm font-bold">3分</button>
+            <button id="btn-bid-0" class="btn-secondary px-5 py-2 text-sm font-bold">不叫</button>
+        </div>
+
+        <!-- 出牌操作按钮组（默认隐藏） -->
+        <div id="play-panel" class="flex items-center gap-3" style="display:none;">
+            <button id="btn-play" class="btn-primary px-6 py-2 text-sm font-bold">出牌</button>
+            <button id="btn-pass" class="btn-secondary px-6 py-2 text-sm font-bold">不出</button>
+            <button id="btn-hint" class="btn-secondary px-6 py-2 text-sm font-bold">💡 提示</button>
+        </div>
+
+        <!-- 倒计时 -->
+        <div id="countdown" class="relative w-12 h-12 flex items-center justify-center" style="display:none;">
+            <div class="ring-progress absolute inset-0 rounded-full"></div>
+            <span class="ring-text text-lg font-bold text-amber-400 relative z-10">30</span>
+        </div>
+
+        <!-- 开始游戏按钮 -->
+        <button id="btn-start" class="btn-primary px-8 py-3 text-base font-bold animate-pulse">
+            🎮 开始游戏
+        </button>
+    </div>
+
+    <!-- ========== 结算面板 ========== -->
+    <div id="settle-panel" class="fixed inset-0 z-50 flex items-center justify-center" style="display:none;">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+        <div class="glass-panel relative z-10 w-full max-w-md p-8 text-center">
+            <div id="settle-icon" class="text-6xl mb-4">🎉</div>
+            <h2 id="settle-title" class="text-2xl font-bold text-white mb-4">胜利！</h2>
+            <div id="settle-details" class="space-y-2 text-sm text-slate-300 mb-6">
+                <p>角色：<span id="settle-role" class="text-amber-400">地主</span></p>
+                <p>底分：<span id="settle-base" class="text-emerald-400">100</span> × 叫分：<span id="settle-bid" class="text-emerald-400">3</span> × 倍数：<span id="settle-multi" class="text-emerald-400">2</span></p>
+                <p class="text-xl font-bold mt-3">得分：<span id="settle-score" class="text-amber-400">+600</span></p>
+            </div>
+            <button id="btn-play-again" class="btn-primary px-8 py-3 text-base font-bold">🔄 再来一局</button>
+        </div>
+    </div>
+
+    <!-- ========== 战绩面板 ========== -->
+    <div id="stats-panel" class="fixed inset-0 z-50 flex items-center justify-center" style="display:none;">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="Utils.hide('stats-panel')"></div>
+        <div class="glass-panel relative z-10 w-full max-w-sm p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-white">📊 战绩统计</h2>
+                <button onclick="Utils.hide('stats-panel')" class="text-slate-400 hover:text-white text-xl">&times;</button>
+            </div>
+            <div id="stats-content" class="space-y-3 text-sm">
+                <div class="flex justify-between"><span class="text-slate-400">总局数</span><span id="stats-total" class="text-white font-bold">0</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">总胜率</span><span id="stats-winrate" class="text-emerald-400 font-bold">0%</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">地主胜率</span><span id="stats-landlord-winrate" class="text-amber-400 font-bold">0%</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">农民胜率</span><span id="stats-farmer-winrate" class="text-emerald-400 font-bold">0%</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">累计得分</span><span id="stats-score" class="text-white font-bold">0</span></div>
+            </div>
+            <button id="btn-reset-stats" class="btn-danger w-full mt-4 py-2 text-sm">重置战绩</button>
+        </div>
+    </div>
+
+    <!-- ========== 设置面板 ========== -->
+    <div id="settings-panel" class="fixed inset-0 z-50 flex items-center justify-center" style="display:none;">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="Utils.hide('settings-panel')"></div>
+        <div class="glass-panel relative z-10 w-full max-w-sm p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-white">⚙️ 游戏设置</h2>
+                <button onclick="Utils.hide('settings-panel')" class="text-slate-400 hover:text-white text-xl">&times;</button>
+            </div>
+            <div class="space-y-4 text-sm">
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-300">音效</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="setting-sound" class="sr-only peer" checked>
+                        <div class="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:bg-indigo-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
+                    </label>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-300">底分</span>
+                    <select id="setting-base-score" class="bg-white/10 border border-white/20 rounded-lg px-3 py-1.5 text-white text-sm">
+                        <option value="50" class="bg-slate-800">50</option>
+                        <option value="100" selected class="bg-slate-800">100</option>
+                        <option value="200" class="bg-slate-800">200</option>
+                        <option value="500" class="bg-slate-800">500</option>
+                    </select>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-300">倒计时</span>
+                    <select id="setting-countdown" class="bg-white/10 border border-white/20 rounded-lg px-3 py-1.5 text-white text-sm">
+                        <option value="15" class="bg-slate-800">15秒</option>
+                        <option value="30" selected class="bg-slate-800">30秒</option>
+                        <option value="60" class="bg-slate-800">60秒</option>
+                        <option value="0" class="bg-slate-800">无限制</option>
+                    </select>
+                </div>
+            </div>
+            <button id="btn-save-settings" class="btn-primary w-full mt-6 py-2 text-sm">保存设置</button>
+        </div>
+    </div>
+
+    <!-- ========== JS文件引入（按依赖顺序） ========== -->
+    <script src="js/utils.js"></script>
+    <script src="js/api-client.js"></script>
+    <script src="js/state-manager.js"></script>
+    <script src="js/card-renderer.js"></script>
+    <script src="js/animation-engine.js"></script>
+    <script src="js/sound-manager.js"></script>
+    <script src="js/ui-updater.js"></script>
+    <script src="js/bid-controller.js"></script>
+    <script src="js/play-controller.js"></script>
+    <script src="js/game-controller.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

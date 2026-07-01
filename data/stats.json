@@ -1,0 +1,12 @@
+{
+  "totalGames": 0,
+  "totalWins": 0,
+  "landlordGames": 0,
+  "landlordWins": 0,
+  "farmerGames": 0,
+  "farmerWins": 0,
+  "totalScore": 0,
+  "winRate": 0.0,
+  "landlordWinRate": 0.0,
+  "farmerWinRate": 0.0
+}
