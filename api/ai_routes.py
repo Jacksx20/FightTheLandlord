@@ -121,16 +121,15 @@ def ai_play(game_id):
             result = engine.play(game_id, player_id, decision['cards'])
             if not result.get('success', True):
                 return _make_response(data=result, message=result.get('error', 'AI出牌失败'))
-            # 附加AI决策信息
-            result['aiAction'] = 'play'
-            result['aiPattern'] = decision['pattern'].to_dict() if decision['pattern'] else None
+            result['action'] = 'play'
+            result['cards'] = [c.to_dict() for c in decision['cards']]
+            result['pattern'] = decision['pattern'].to_dict() if decision['pattern'] else None
         else:
             # AI过牌
             result = engine.pass_turn(game_id, player_id)
             if not result.get('success', True):
                 return _make_response(data=result, message=result.get('error', 'AI过牌失败'))
-            # 附加AI决策信息
-            result['aiAction'] = 'pass'
+            result['action'] = 'pass'
 
         return _make_response(data=result)
 

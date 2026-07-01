@@ -49,7 +49,7 @@ class CardRenderer {
         const cardEl = document.createElement('div');
 
         // 判断是否正面朝上
-        if (!card.face_up) {
+        if (card.faceUp === false) {
             cardEl.className = `card face-down${small ? ' small' : ''}`;
             cardEl.dataset.cardId = card.id;
             return cardEl;
