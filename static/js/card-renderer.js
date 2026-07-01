@@ -200,7 +200,7 @@ class CardRenderer {
 
         // 创建出牌容器
         const playCards = document.createElement('div');
-        playCards.className = 'flex items-center justify-center gap-1';
+        playCards.className = 'flex items-center justify-center gap-1 flex-wrap';
 
         cards.forEach(card => {
             const cardEl = this.render(card, {
