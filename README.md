@@ -1,6 +1,6 @@
 # 🃏 斗地主 (Fight the Landlord)
 
-一个界面精美、功能完善的斗地主纸牌游戏，支持人机对战，采用毛玻璃深色主题设计。
+一个界面精美、功能完善的Python基础学习斗地主纸牌游戏，支持人机对战，采用毛玻璃深色主题设计。
 
 ![游戏界面](https://img.shields.io/badge/界面-毛玻璃深色主题-blue)
 ![技术栈](https://img.shields.io/badge/前端-Vanilla%20JS%20%2B%20Tailwind-green)
